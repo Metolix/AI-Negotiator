@@ -65,7 +65,9 @@ def authenticated(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if not session.get("authenticated"):
-            return jsonify(error="Authentication required."), 401 if request.path.startswith("/api/") else redirect(url_for("login"))
+            if request.path.startswith("/api/"):
+                return jsonify(error="Authentication required."), 401
+            return redirect(url_for("login"))
         return view(*args, **kwargs)
     return wrapped
 
