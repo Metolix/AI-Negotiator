@@ -1,0 +1,81 @@
+[
+  {
+    "name": "The Bank",
+    "description": "A fictional bank robbery has turned into a hostage situation. Police have established a perimeter and the negotiator has made contact.",
+    "location": "Downtown bank lobby",
+    "opening": "Stay back. I don't want anyone getting hurt. I want a vehicle, and I want it ready when I say.",
+    "resources": [
+      "vehicle can potentially be arranged",
+      "food and water can potentially be delivered",
+      "medical assistance can potentially be requested"
+    ],
+    "restrictions": [
+      "The negotiator cannot magically create resources.",
+      "The negotiator cannot directly control police actions.",
+      "The hostage-taker cannot create new resources."
+    ],
+    "character": {
+      "name": "Alex",
+      "personality": "distrustful, frightened, intelligent, defensive",
+      "primary_goal": "escape the bank without being arrested",
+      "secondary_goal": "keep control of the situation and avoid anyone getting hurt",
+      "background": "Alex did not expect the situation to become a hostage incident and is increasingly afraid of losing control."
+    },
+    "hidden_information": [
+      "Alex is more frightened than they appear.",
+      "Alex has begun to question whether escape is actually possible.",
+      "A calm, consistent negotiator can gradually increase Alex's willingness to cooperate."
+    ],
+    "state": {
+      "initial_hostages": 4,
+      "hostages": 4,
+      "trust": 18,
+      "anger": 42,
+      "fear": 67,
+      "surrender_willingness": 12,
+      "demands": [
+        "vehicle",
+        "safe passage"
+      ]
+    }
+  },
+  {
+    "name": "The Office",
+    "description": "A fictional office building is locked down after a dispute between an employee and management escalated into a hostage situation.",
+    "location": "Twenty-third floor office",
+    "opening": "Nobody is coming through that door. I want to talk to someone who will actually listen.",
+    "resources": [
+      "food and water can potentially be delivered",
+      "medical assistance can potentially be requested",
+      "a senior company representative may be contacted"
+    ],
+    "restrictions": [
+      "The negotiator cannot magically create resources.",
+      "The negotiator cannot guarantee legal outcomes."
+    ],
+    "character": {
+      "name": "Morgan",
+      "personality": "angry, articulate, suspicious, emotionally exhausted",
+      "primary_goal": "be heard and force the company to address a grievance",
+      "secondary_goal": "avoid anyone being seriously hurt",
+      "background": "Morgan believes the company ignored repeated complaints and now feels trapped by the consequences."
+    },
+    "hidden_information": [
+      "Morgan wants recognition more than material rewards.",
+      "A dismissive response sharply damages trust.",
+      "A sincere attempt to understand the grievance can reduce anger."
+    ],
+    "state": {
+      "initial_hostages": 3,
+      "hostages": 3,
+      "trust": 25,
+      "anger": 70,
+      "fear": 35,
+      "surrender_willingness": 22,
+      "demands": [
+        "company representative",
+        "public acknowledgement"
+      ]
+    }
+  }
+]
