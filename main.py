@@ -10,7 +10,8 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+# Default to Groq's high-intelligence free model
+MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 MAX_TURNS = int(os.getenv("MAX_TURNS", "40"))
 
 BASE_DIR = Path(__file__).parent
@@ -69,6 +70,7 @@ STATE RULES:
 - If the player offers something that exists in the scenario, the AI can accept or counter it.
 """
 
+
 def clamp(value, low=0, high=100):
     return max(low, min(high, int(value)))
 
@@ -81,7 +83,7 @@ def load_scenarios():
 def choose_scenario(scenarios):
     print("\n=== HOSTAGE NEGOTIATOR ===\n")
     for i, scenario in enumerate(scenarios, 1):
-        print(f"{i}. {scenario['name']} — {scenario['description']}")
+        print(f"{i}. {scenario['name']} - {scenario['description']}")
     print("R. Random scenario")
     print("Q. Quit")
 
@@ -163,30 +165,34 @@ PLAYER'S LATEST MESSAGE:
 Evaluate the player's message and produce the required JSON.
 """
 
-    response = client.responses.create(
+    response = client.chat.completions.create(
         model=MODEL,
-        instructions=SYSTEM_PROMPT,
-        input=user_input,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_input},
+        ],
         temperature=0.8,
+        response_format={"type": "json_object"},
     )
 
-    raw = response.output_text.strip()
-
-    # Be forgiving if a model wraps JSON in markdown.
-    if raw.startswith("```"):
-        raw = raw.split("\n", 1)[1]
-        raw = raw.rsplit("```", 1)[0].strip()
+    raw = response.choices[0].message.content.strip()
 
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
-        # One repair request rather than crashing the game.
-        repair = client.responses.create(
+        # Repair attempt if needed
+        repair = client.chat.completions.create(
             model=MODEL,
-            instructions="Return ONLY valid JSON. Repair the following into the required schema without changing its meaning.",
-            input=raw,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Return ONLY valid JSON matching the exact required schema. Repair the input without changing its meaning.",
+                },
+                {"role": "user", "content": raw},
+            ],
+            response_format={"type": "json_object"},
         )
-        data = json.loads(repair.output_text)
+        data = json.loads(repair.choices[0].message.content)
 
     return data
 
@@ -297,11 +303,16 @@ def game_loop(client, scenario, state=None, history=None):
             continue
 
         if player_message.lower() == "/status":
-            print(json.dumps({
-                "hostages": state["hostages"],
-                "turn": state["turn"],
-                "demands": state["demands"],
-            }, indent=2))
+            print(
+                json.dumps(
+                    {
+                        "hostages": state["hostages"],
+                        "turn": state["turn"],
+                        "demands": state["demands"],
+                    },
+                    indent=2,
+                )
+            )
             continue
 
         if player_message.lower() == "/history":
@@ -328,7 +339,6 @@ def game_loop(client, scenario, state=None, history=None):
         print(f"\n{scenario['character']['name']}: {dialogue}")
         history.append({"speaker": scenario["character"]["name"], "text": dialogue})
 
-        # Keep a compact long-term summary for future AI versions.
         state["conversation_summary"].append(
             f"Turn {state['turn']}: Negotiator said: {player_message[:180]}. "
             f"Hostage-taker action: {action}."
@@ -348,20 +358,24 @@ def game_loop(client, scenario, state=None, history=None):
             return
 
         if action == "escalate":
-            # Escalation is not automatically a loss; it ends this prototype scenario.
             show_ending("escalate", state, scenario)
             return
 
 
 def main():
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
-        print("Missing OPENAI_API_KEY.")
+        print("Missing GROQ_API_KEY.")
         print("Create a .env file and add:")
-        print("OPENAI_API_KEY=your_key_here")
+        print("GROQ_API_KEY=your_key_here")
+        print("\nGet a free API key instantly at: https://console.groq.com/keys")
         return
 
-    client = OpenAI(api_key=api_key)
+    # Points the OpenAI client to Groq's free endpoint
+    client = OpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=api_key,
+    )
     scenarios = load_scenarios()
 
     print("1. New game")
