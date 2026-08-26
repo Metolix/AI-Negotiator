@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Incident Simulator</title>
+    <style>
+        body { font-family: monospace; background: #121212; color: #e0e0e0; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .panel { background: #1e1e1e; border: 1px solid #333; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+        .btn { background: #333; color: #00ffff; border: 1px solid #00ffff; padding: 10px 15px; cursor: pointer; font-family: monospace; margin: 5px; }
+        .btn:hover { background: #00ffff; color: #000; }
+        #chat-log { height: 400px; overflow-y: auto; background: #000; padding: 15px; border: 1px solid #444; border-radius: 5px; margin-bottom: 15px; }
+        .msg-npc { color: #ff5555; margin-bottom: 10px; }
+        .msg-player { color: #55ffff; margin-bottom: 10px; }
+        .msg-sys { color: #55ff55; margin-bottom: 10px; }
+        .status-bar { color: #aaa; font-size: 14px; display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #555; padding-bottom: 10px; }
+        input[type="text"] { width: calc(100% - 110px); padding: 10px; background: #000; color: #fff; border: 1px solid #444; font-family: inherit; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Scenario Selection Screen -->
+        <div id="screen-menu" class="panel">
+            <h2 style="color: #00ffff; text-align: center;">TACTICAL INCIDENT COMMAND</h2>
+            <div id="scenario-list">Loading scenarios...</div>
+            <br>
+            <button class="btn" onclick="startGame('random')">Deploy Random Scenario</button>
+        </div>
+
+        <!-- Game Interface Screen -->
+        <div id="screen-game" class="panel hidden">
+            <div class="status-bar" id="status-bar">
+                <!-- Status populated via JS -->
+            </div>
+            
+            <div id="chat-log"></div>
+            
+            <div style="display: flex;" id="input-area">
+                <input type="text" id="chat-input" placeholder="Enter negotiation tactics..." onkeypress="handleEnter(event)">
+                <button class="btn" style="width: 100px; margin: 0 0 0 10px;" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Fetch and display scenarios on load
+        fetch('/api/scenarios').then(r => r.json()).then(data => {
+            const list = document.getElementById('scenario-list');
+            list.innerHTML = '';
+            data.forEach(scen => {
+                list.innerHTML += `
+                    <div style="margin-bottom: 15px;">
+                        <span style="color:#ffff55; font-weight:bold;">[${scen.id}] ${scen.name}</span><br>
+                        <span style="color:#888;">${scen.description}</span><br>
+                        <button class="btn" style="padding: 5px; font-size: 12px;" onclick="startGame(${scen.id})">Select</button>
+                    </div>`;
+            });
+        });
+
+        function appendMessage(sender, text, type) {
+            const log = document.getElementById('chat-log');
+            log.innerHTML += `<div class="msg-${type}"><strong>${sender}:</strong> ${text}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatusBar(state) {
+            const demands = state.demands.length > 0 ? state.demands.join(", ") : "None";
+            const hostColor = state.hostages === 0 ? '#55ff55' : '#ff5555';
+            
+            document.getElementById('status-bar').innerHTML = `
+                <span>Hostages: <strong style="color:${hostColor}">${state.hostages}/${state.initial_hostages}</strong></span>
+                <span>Turn: <strong style="color:#55ffff">${state.turn}/${state.max_turns}</strong></span>
+                <span>Demands: <strong style="color:#ffff55">${demands}</strong></span>
+            `;
+        }
+
+        async function startGame(scenarioId) {
+            document.getElementById('screen-menu').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('chat-log').innerHTML = '';
+
+            const res = await fetch('/api/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scenario_id: scenarioId })
+            });
+            const data = await res.json();
+            
+            updateStatusBar(data.state);
+            appendMessage("SYSTEM", data.scenario_info, "sys");
+            appendMessage(data.character, data.opening, "npc");
+        }
+
+        function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Lock UI momentarily
+            input.value = '';
+            input.disabled = true;
+            appendMessage("Negotiator", message, "player");
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            
+            const data = await res.json();
+            input.disabled = false;
+            input.focus();
+
+            if (data.error) {
+                appendMessage("SYSTEM", data.error, "sys");
+                return;
+            }
+
+            updateStatusBar(data.state);
+            appendMessage(data.character, data.reply, "npc");
+
+            if (data.game_over) {
+                appendMessage("SYSTEM", data.ending_message, "sys");
+                document.getElementById('input-area').classList.add('hidden');
+                setTimeout(() => location.reload(), 5000); // Reload to menu after 5 seconds
+            }
+        }
+    </script>
+</body>
+</html>7

@@ -10,7 +10,6 @@ from openai import OpenAI
 
 load_dotenv()
 
-# Active Groq models (deprecated models removed)
 PRIMARY_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 FALLBACK_MODELS = [
     PRIMARY_MODEL,
@@ -414,7 +413,6 @@ def main():
     if not api_key:
         print(f"{Style.RED}Missing GROQ_API_KEY in environment.{Style.RESET}")
         print("Set GROQ_API_KEY inside your .env file.")
-        print("Obtain a free API Key: https://console.groq.com/keys")
         return
 
     client = OpenAI(
