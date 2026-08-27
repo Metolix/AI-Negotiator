@@ -52,6 +52,14 @@ def require_auth():
 def index():
     return render_template("index.html")
 
+@routes.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@routes.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 
 @routes.route("/api/scenarios")
 def scenarios():
