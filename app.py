@@ -37,10 +37,11 @@ app.secret_key = os.getenv(
 )
 
 # temporary authentication for testing
+TEST_USER = os.getenv("TEST_USER")
 TEST_PASS = os.getenv("TEST_PASS")
 
 def check_auth(username, password):
-    return password == TEST_PASS
+    return username == TEST_USER and password == TEST_PASS
 
 def authenticate():
     return Response(
@@ -52,7 +53,7 @@ def authenticate():
 @app.before_request
 def require_auth():
     auth = request.authorization
-    if not auth or not check_auth(auth.password):
+    if not auth or not check_auth(auth.username, auth.password):
         return authenticate()
 
 # ai
