@@ -1,7 +1,7 @@
 [
   {
     "name": "The Bank",
-    "description": "A fictional bank robbery has turned into a hostage situation. Police have established a perimeter and the negotiator has made contact.",
+    "description": "A bank robbery has turned into a hostage situation. Police have established a perimeter and the negotiator has made contact.",
     "location": "Downtown bank lobby",
     "opening": "Stay back. I don't want anyone getting hurt. I want a vehicle, and I want it ready when I say.",
     "resources": [
@@ -41,8 +41,8 @@
   },
   {
     "name": "The Office",
-    "description": "A fictional office building is locked down after a dispute between an employee and management escalated into a hostage situation.",
-    "location": "Twenty-third floor office",
+    "description": "An office building is locked down after a dispute between an employee and management escalated into a hostage situation.",
+    "location": "23rd floor office",
     "opening": "Nobody is coming through that door. I want to talk to someone who will actually listen.",
     "resources": [
       "food and water can potentially be delivered",
@@ -77,5 +77,125 @@
         "public acknowledgement"
       ]
     }
+  },
+{
+  "name": "The Research Lab",
+  "description": "A disgruntled former researcher has locked themselves inside a university biotechnology laboratory with a deadly pathogen.",
+  "location": "Sub basement B4 containment lab",
+  "opening": "Stay where you are! If anyone tries to breach this door or cut the power, I break the vial and everyone in this building goes down with me.",
+  "resources": [
+    "university officials can potentially be contacted",
+    "specialized hazardous material transport can potentially be arranged",
+    "lab logs and research files can potentially be retrieved"
+  ],
+  "restrictions": [
+    "The negotiator cannot magically create resources.",
+    "The negotiator cannot grant immunity from federal prosecution.",
+    "The barricaded subject cannot verify external police movements without relying on monitoring equipment."
+  ],
+  "character": {
+    "name": "Dr. Vance",
+    "personality": "obsessive, erratic, highly intellectual, deeply cynical",
+    "primary_goal": "prevent their research from being stolen or destroyed by the university board",
+    "secondary_goal": "ensure credit for their scientific discovery before taking drastic measures",
+    "background": "Dr. Vance was stripped of funding and terminated after accusing the department head of plagiarism, leading to a mental break."
+  },
+  "hidden_information": [
+    "Dr. Vance is terrified of contract pathogens and is hesitant to actually break the vial.",
+    "Appealing to Vance's professional legacy and academic ego lowers aggression faster than legal threats.",
+    "If Vance feels ignored, hostility spikes rapidly due to paranoia."
+  ],
+  "state": {
+    "initial_hostages": 2,
+    "hostages": 2,
+    "trust": 15,
+    "anger": 65,
+    "fear": 50,
+    "surrender_willingness": 10,
+    "demands": [
+      "reinstatement of research credentials",
+      "live stream broadcast to publish research papers"
+    ]
   }
+},
+{
+  "name": "The Transit Bus",
+  "description": "An armed robbery suspect fleeing law enforcement hijacked a municipal bus, taking the driver and passengers hostage.",
+  "location": "City route 42 bus, stopped on an elevated highway bridge",
+  "opening": "Keep those squad cars back! If I see a single officer cross the bridge line, this bus goes over the edge!",
+  "resources": [
+    "fuel can potentially be supplied",
+    "food and water can potentially be delivered",
+    "medical attention for wounded passengers can potentially be coordinated"
+  ],
+  "restrictions": [
+    "The negotiator cannot magically create resources.",
+    "The negotiator cannot disable law enforcement snipers or law enforcement positioning directly.",
+    "The suspect cannot clear traffic obstructions without tactical intervention."
+  ],
+  "character": {
+    "name": "Jordan",
+    "personality": "impulsive, panicked, desperate, volatile",
+    "primary_goal": "escape the immediate police cordon and avoid spending life in prison",
+    "secondary_goal": "avoid harming hostages unless directly cornered",
+    "background": "Jordan was acting as a getaway driver for a failed heist; after being abandoned by accomplices, panic led to taking the bus."
+  },
+  "hidden_information": [
+    "Jordan feels betrayed by former crew members and may trade information for a lighter sentence.",
+    "High adrenaline makes Jordan prone to sudden, reckless decisions if rushed.",
+    "Reassuring Jordan that the situation is still manageable slowly builds compliance."
+  ],
+  "state": {
+    "initial_hostages": 6,
+    "hostages": 6,
+    "trust": 10,
+    "anger": 55,
+    "fear": 80,
+    "surrender_willingness": 18,
+    "demands": [
+      "clear pathway through the bridge roadblock",
+      "refueled bus"
+    ]
+  }
+},
+{
+  "name": "The High Security Ward",
+  "description": "A prison inmate undergoing emergency surgery in a civilian hospital managed to overpower a guard and take staff hostage in a wing of the ward.",
+  "location": "4th floor surgical ICU wing",
+  "opening": "I'm not going back to that cell! Get me out of this building or nobody in this room makes it out alive!",
+  "resources": [
+    "pain medication and medical supplies can potentially be provided",
+    "getaway clothing or disguised attire can potentially be offered",
+    "a phone call to a family member can potentially be connected"
+  ],
+  "restrictions": [
+    "The negotiator cannot magically create resources.",
+    "The negotiator cannot dismiss prison sentences or active warrants.",
+    "The hostage taker cannot navigate locked hospital security doors without keycard access."
+  ],
+  "character": {
+    "name": "Sam",
+    "personality": "calculating, ruthless, physically weak, highly alert",
+    "primary_goal": "secure freedom and avoid returning to maximum security confinement",
+    "secondary_goal": "obtain medical stabilization for an active, untreated post-surgery wound",
+    "background": "Sam is serving a 20 year sentence and saw this hospital transfer as the last possible chance at freedom."
+  },
+  "hidden_information": [
+    "Sam's physical condition is worsening due to internal bleeding, creating a hidden time limit.",
+    "Tactical concessions regarding medical care build trust without compromising public safety.",
+    "Sam will grow aggressive if they suspect the negotiator is stalling for medical collapse."
+  ],
+  "state": {
+    "initial_hostages": 3,
+    "hostages": 3,
+    "trust": 12,
+    "anger": 60,
+    "fear": 45,
+    "surrender_willingness": 8,
+    "demands": [
+      "unmarked transport vehicle",
+      "unlocked access to the emergency stairwell"
+    ]
+  }
+}
 ]
