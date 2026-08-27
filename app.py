@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request, session, Response
 from openai import OpenAI
 
 load_dotenv()
@@ -35,6 +35,25 @@ app = Flask(__name__)
 app.secret_key = os.getenv(
     "FLASK_SECRET_KEY"
 )
+
+# temporary authentication for testing
+TEST_PASS = os.getenv("TEST_PASS")
+
+def check_auth(username, password):
+    return password == TEST_PASS
+
+def authenticate():
+    return Response(
+        'Authentication required to access this testing environment.', 
+        401,
+        {'WWW-Authenticate': 'Basic realm="Testing Environment"'}
+    )
+
+@app.before_request
+def require_auth():
+    auth = request.authorization
+    if not auth or not check_auth(auth.password):
+        return authenticate()
 
 # ai
 
@@ -96,7 +115,11 @@ STATE RULES:
 """
 # temporary game storage
 
-GAME_SESSIONS = {}
+def save_game(game):
+    if len(game.get("history", [])) > 15:
+        game["history"] = game["history"][-15:]
+    session["game"] = game
+    session.modified = True
 
 # functions
 
@@ -154,18 +177,13 @@ def create_game(scenario):
 
 
 def get_game():
-    game_id = session.get("game_id")
-
-    if not game_id:
-        return None
-
-    return GAME_SESSIONS.get(game_id)
+    return session.get("game")
 
 # ai context
 
 def build_context(scenario, state, history):
 
-    recent = history[-12:]
+    recent = history[-40:]
 
     return f"""
 SCENARIO:
@@ -512,15 +530,11 @@ def new_game():
                 "error": "Invalid scenario."
             }), 400
 
-    game_id = str(uuid.uuid4())
-
-    GAME_SESSIONS[game_id] = create_game(
+    game = create_game(
         scenario
     )
 
-    session["game_id"] = game_id
-
-    game = GAME_SESSIONS[game_id]
+    save_game(game)
 
     return jsonify({
         "success": True,
@@ -694,6 +708,8 @@ def message():
         game["finished"] = True
         game["ending"] = ending
 
+    save_game(game)
+
     return jsonify({
         "type": "response",
         "dialogue": dialogue,
@@ -706,16 +722,8 @@ def message():
 @app.route("/api/reset", methods=["POST"])
 def reset():
 
-    game_id = session.get("game_id")
-
-    if game_id:
-        GAME_SESSIONS.pop(
-            game_id,
-            None
-        )
-
     session.pop(
-        "game_id",
+        "game",
         None
     )
 
