@@ -19,6 +19,7 @@ def initialize_state(scenario):
     state = deepcopy(scenario["state"])
     state["turn"] = 0
     state["max_turns"] = MAX_TURNS
+    state["released_hostages"] = 0
     state["conversation_summary"] = []
     return state
 
@@ -51,8 +52,10 @@ def apply_ai_result(scenario, state, result):
     if result.get("action") == "release_hostage":
         release_count = 1
 
-    if release_count:
-        state["hostages"] = max(0, state["hostages"] - release_count)
+    if release_count > 0 and state["hostages"] > 0:
+        actual_released = min(release_count, state["hostages"])
+        state["hostages"] -= actual_released
+        state["released_hostages"] = state.get("released_hostages", 0) + actual_released
 
     demand_change = str(result.get("demand_change", "")).strip()
 
@@ -71,6 +74,37 @@ def apply_ai_result(scenario, state, result):
         action = "continue"
 
     return action, valid_surrender
+
+
+def process_turn(game, player_message, call_ai_func, client):
+    """
+    Executes a turn safely:
+    1. Obtains the AI response first.
+    2. Only mutates game state and history on API success.
+    """
+    if game["finished"]:
+        return game, None
+
+    temp_history = deepcopy(game["history"])
+    temp_history.append({"speaker": "Negotiator", "text": player_message})
+    ai_result = call_ai_func(client, game["scenario"], game["state"], temp_history, player_message)
+
+    game["state"]["turn"] += 1
+    game["history"].append({"speaker": "Negotiator", "text": player_message})
+
+    action, valid_surrender = apply_ai_result(game["scenario"], game["state"], ai_result)
+
+    game["history"].append({
+        "speaker": game["scenario"]["character"]["name"],
+        "text": ai_result.get("dialogue", "...")
+    })
+
+    ending = determine_ending(action, valid_surrender, game["state"])
+    if ending:
+        game["finished"] = True
+        game["ending"] = ending
+
+    return game, ai_result
 
 
 def determine_ending(action, valid_surrender, state):

@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from openai import OpenAI
 from config import FALLBACK_MODELS
 
@@ -58,6 +59,7 @@ STATE RULES:
   or other resources by itself.
 - If the player offers something that exists in the scenario,
   the AI can accept or counter it.
+- Hostages released so far were voluntarily let go by you in previous turns. Do not assume a police breach took them unless an actual police breach event is triggered.
 """
 
 
@@ -90,8 +92,9 @@ Secondary goal: {scenario['character']['secondary_goal']}
 Background: {scenario['character']['background']}
 
 CURRENT HIDDEN STATE:
-Hostages remaining: {state['hostages']}
-Initial hostages: {state['initial_hostages']}
+Hostages remaining in room: {state['hostages']}
+Hostages safely released by you so far: {state.get('released_hostages', 0)}
+Initial total hostages: {state['initial_hostages']}
 Trust: {state['trust']}
 Anger: {state['anger']}
 Fear: {state['fear']}
@@ -145,29 +148,33 @@ Evaluate the player's message and produce the required JSON.
             break
         except Exception as error:
             last_exception = error
+            time.sleep(1.0)  # Backoff delay to recover from transient rate limits
             continue
 
     if response is None:
-        raise last_exception
+        raise RuntimeError(f"All model attempts failed: {last_exception}")
 
     raw = response.choices[0].message.content.strip()
 
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
-        repair = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Return ONLY valid JSON matching the exact "
-                        "required schema. Repair the input without "
-                        "changing its meaning."
-                    ),
-                },
-                {"role": "user", "content": raw},
-            ],
-            response_format={"type": "json_object"},
-        )
-        return json.loads(repair.choices[0].message.content)
+        try:
+            repair = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Return ONLY valid JSON matching the exact "
+                            "required schema. Repair the input without "
+                            "changing its meaning."
+                        ),
+                    },
+                    {"role": "user", "content": raw},
+                ],
+                response_format={"type": "json_object"},
+            )
+            return json.loads(repair.choices[0].message.content)
+        except Exception as repair_error:
+            raise ValueError("Failed to parse or repair AI JSON response.") from repair_error
