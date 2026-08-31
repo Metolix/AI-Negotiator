@@ -27,24 +27,23 @@ def get_game():
     return session.get("game")
 
 
-def check_auth(username, password):
-    return username == TEST_USER and password == TEST_PASS
+
+#def check_auth(username, password):
+#    return username == TEST_USER and password == TEST_PASS
 
 
-def authenticate():
-    return Response(
-        "Authentication required to access this testing environment.",
-        401,
-        {"WWW-Authenticate": 'Basic realm="Testing Environment"'},
-    )
+#def authenticate():
+#    return Response(
+#        "Authentication required to access this testing environment.",
+#        401,
+#        {"WWW-Authenticate": 'Basic realm="Testing Environment"'},
+#    )
 
-
-@routes.before_request
-def require_auth():
-    auth = request.authorization
-    if not auth or not check_auth(auth.username, auth.password):
-        return authenticate()
-
+#@routes.before_request
+#def require_auth():
+#    auth = request.authorization
+#    if not auth or not check_auth(auth.username, auth.password):
+#        return authenticate()
 
 # Endpoint Handlers
 
